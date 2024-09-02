@@ -14,11 +14,12 @@ import LandingPage from "./chapter_09/LandingPage";
 import AttendanceBook from "./chapter_10/AttendanceBook";
 import Signup from "./chapter_11/Singup";
 import Calculator from "./chapter_12/Calculator";
+import ProfileCard from "./chapter_13/ProfileCard";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   // <React.StrictMode>
-  <Calculator />
+  <ProfileCard />
   // </React.StrictMode>
 );
 
