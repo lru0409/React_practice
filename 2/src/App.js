@@ -8,9 +8,10 @@ import Average from "./chapter_08/Average";
 import SassComponent from "./chapter_09/SassComponent";
 import CSSModule from "./chapter_09/CSSModule";
 import StyledComponent from "./chapter_09/StyledComponent";
+import Form from "./chapter_11/Form";
 
 function App() {
-  return <StyledComponent />;
+  return <Form />;
 }
 
 export default App;
