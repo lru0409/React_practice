@@ -1,9 +1,9 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import styled from "styled-components";
-import MainPage from "./mini_blog/page/MainPage";
-import PostWritePage from "./mini_blog/page/PostWritePage";
-import PostViewPage from "./mini_blog/page/PostViewPage";
+import MainPage from "./chapter_17_miniblog/page/MainPage";
+import PostWritePage from "./chapter_17_miniblog/page/PostWritePage";
+import PostViewPage from "./chapter_17_miniblog/page/PostViewPage";
 
 const MainTitleText = styled.p`
   font-size: 24px;
