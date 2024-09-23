@@ -1,5 +1,5 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import styled, { css } from 'styled-components';
+import { NavLink } from 'react-router-dom';
+import styled from 'styled-components';
 
 const categories = [
   {
@@ -43,7 +43,7 @@ const CategoriesBlock = styled.div`
   }
 `;
 
-const Category = styled.div`
+const Category = styled(NavLink)`
   font-size: 1.125rem;
   cursor: pointer;
   white-space: pre;
@@ -55,16 +55,14 @@ const Category = styled.div`
     color: #495057;
   }
 
-  ${(props) =>
-    props.active &&
-    css`
-      font-weight: 600;
-      border-bottom: 2px solid #22b8cf;
-      color: #22b8cf;
-      $:hover {
-        color: #3bc9db;
-      }
-    `}
+  &.active {
+    font-weight: 600;
+    border-bottom: 2px solid #22b8cf;
+    color: #22b8cf;
+    &:hover {
+      color: #3bc9db;
+    }
+  }
 
   & + & {
     margin-left: 1rem;
@@ -72,18 +70,14 @@ const Category = styled.div`
 `;
 
 const Categories = () => {
-  const params = useParams();
-  const category = params.category || 'all';
-  const navigate = useNavigate();
-
   return (
     <CategoriesBlock>
       {categories.map((c) => {
         return (
           <Category
             key={c.name}
-            active={category === c.name}
-            onClick={() => navigate(`/${c.name}`)}
+            className={({ isActive }) => (isActive ? 'active' : undefined)}
+            to={c.name === 'all' ? '/' : `/${c.name}`}
           >
             {c.text}
           </Category>
