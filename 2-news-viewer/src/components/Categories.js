@@ -1,3 +1,4 @@
+import { useParams, useNavigate } from 'react-router-dom';
 import styled, { css } from 'styled-components';
 
 const categories = [
@@ -70,7 +71,11 @@ const Category = styled.div`
   }
 `;
 
-const Categories = ({ onSelect, category }) => {
+const Categories = () => {
+  const params = useParams();
+  const category = params.category || 'all';
+  const navigate = useNavigate();
+
   return (
     <CategoriesBlock>
       {categories.map((c) => {
@@ -78,7 +83,7 @@ const Categories = ({ onSelect, category }) => {
           <Category
             key={c.name}
             active={category === c.name}
-            onClick={() => onSelect(c.name)}
+            onClick={() => navigate(`/${c.name}`)}
           >
             {c.text}
           </Category>
