@@ -11,16 +11,10 @@ import ColorBox from "./chapter_15/components/ColorBox";
 import ColorContext from "./chapter_15/contexts/color";
 import { ColorProvider } from "./chapter_15/contexts/color";
 import SelectColors from "./chapter_15/components/SelectColors";
+import CodeSplitting from "./chapter_19/CodeSplitting";
 
 function App() {
-  return (
-    <ColorProvider>
-      <div>
-        <SelectColors />
-        <ColorBox />
-      </div>
-    </ColorProvider>
-  );
+  return <CodeSplitting />;
 }
 
 export default App;
