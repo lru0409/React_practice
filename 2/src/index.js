@@ -16,10 +16,11 @@ import { BrowserRouter } from "react-router-dom";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { thunk } from "redux-thunk";
-import rootReducer from "./chapter_18/modules";
+import rootReducer, { rootSaga } from "./chapter_18/modules";
 import CounterContainer from "./chapter_18/containers/CounterContainer";
 import loggerMiddleware from "./chapter_18/lib/loggerMiddleware";
 import App from "./App_chapter_18";
+import createSagaMiddleware from "redux-saga";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
@@ -39,11 +40,13 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 // );
 
 // === chapter_18 ====
+const sagaMiddleware = createSagaMiddleware();
 const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(loggerMiddleware, thunk), // 기존 미들웨어에 추가
+    getDefaultMiddleware().concat(loggerMiddleware, thunk, sagaMiddleware), // 기존 미들웨어에 추가
 });
+sagaMiddleware.run(rootSaga);
 
 root.render(
   <Provider store={store}>

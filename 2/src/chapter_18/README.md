@@ -122,3 +122,102 @@ export const getPost = (id) => async (dispatch) => {
 - `getPost`가 반환하는 함수를, 이후에 미들웨어가 `dispatch`를 넣어 호출해준다.
 
 <br/>
+
+## 비동기 작업을 처리하는 미들웨어 사용 : **redux-saga**
+
+- redux-thunk 다음으로 많이 사용하는 비동기 작업 관련 미들웨어이다.
+- redux-saga는 좀 더 까다로운 상황에서 유용하다.
+  - 기존 요청을 취소 처리해야 할 때(불필요한 중복 요청 방지)
+  - 특정 액션이 발생했을 때 다른 액션을 발생시키거나, API 요청 등 리덕스와 관계없는 코드를 실행할 때
+  - 웹소켓을 사용할 때
+  - API 요청 실패 시 재요청해야 할 때
+- ES6의 제네레이터 함수 문법을 기반으로 비동기 작업을 관리해준다.
+
+  - 함수를 특정 구간에 멈춰 놓을 수도 있고, 원할 때 다시 돌아가게 할 수도 있다.
+
+  ```jsx
+  function* generatorFunction() {
+    console.log("안녕하세요");
+    yield 1;
+    console.log("제너레이터 함수");
+    yield 2;
+    console.log("function*");
+    yield 3;
+    return 4;
+  }
+
+  const generator = generatorFunction();
+  generator.next(); // [출력] 안녕하세요 [반환] { value: 1, done: false }
+  generator.next(); // [출력] 제너레이터 함수 [반환] { value: 2, done: false }
+  generator.next(); // [출력] function* [반환] { value: 3, done: false }
+  generator.next(); // [반환] { value: 4, done: true }
+  generator.next(); // [반환] { value: undefined, done: true }
+  ```
+
+- 디스패치하는 액션을 모니터링해서 그에 따라 필요한 작업을 따로 수행할 수 있는 미들웨어이다.
+
+### 비동기 카운터 만들기
+
+- 액션 타입과 액션 생성 함수, 제너레이터 함수(사가)를 만든다.
+  ```jsx
+  function* increaseSaga() {
+    yield delay(1000); // 1초 대기
+    yield put(increase()); // 특정 액션 디스패치
+  }
+
+  function* decreaseSaga() {
+    yield delay(1000); // 1초 대기
+    yield put(decrease()); // 특정 액션 디스패치
+  }
+
+  export function* counterSaga() {
+    // takeEvery는 들어오는 모든 액션을 처리함
+    yield takeEvery(INCREASE_ASYNC, increaseSaga);
+    // takeLast는 기존에 진행 중이던 작업은 취소하고 마지막으로 실행된 작업만 수행함
+    yield takeLatest(DECREASE_ASYNC, decreaseSaga);
+  }
+  ```
+- 루트 리듀서를 만들었던 것처럼 루트 사가를 만들고 스토어에 적용해야 한다.
+- +1을 두 번 누르면 `INCREASE_ASYNC` 액션이 두 번 디스패치되고, -1을 두 번 누르면 `DECREASE_ASYNC` 액션이 한 번 디스패치될 것이다.
+
+### API 요청 상태 관리하기
+
+- 사가 내부에서 API를 호출해야 하는 상황에는 직접 호출하지 않고, call 함수를 사용한다. call에는 첫 번째 인수로 호출하고 싶은 함수, 두 번째 인수로 첫 번째 함수에 전달할 인수를 전달한다.
+
+```jsx
+function* getPostSaga(action) {
+  yield put(startLoading(GET_POST)); // 로딩 시작
+  try {
+    // call을 사용하면 Promise를 반환하는 함수를 호출하고 기다릴 수 있다.
+    // 첫 번째 파라미터는 함수, 나머지 파라미터는 해당 함수에 넣을 인수이다.
+    const post = yield call(api.getPost, action.payload);
+    yield put({ type: GET_POST_SUCCESS, payload: post.data });
+  } catch (e) {
+    yield put({ type: GET_POST_FAILURE, payload: e, error: true });
+  }
+  yield put(finishLoading(GET_POST)); // 로딩 완료
+}
+```
+
+### 알아 두면 유용한 기능들
+
+- 사가 내부에서 현재 상태를 조회할 수 있다.
+  ```jsx
+  import { delay, put, select } from "redux-saga/effects";
+
+  function* increaseSaga() {
+    yield delay(1000); // 1초 대기
+    yield put(increase()); // 특정 액션 디스패치
+    const number = yield select((state) => state.counter); // state는 스토어 상태를 의미함
+    console.log(`현재 값은 ${number}입니다.`);
+  }
+  ```
+- 사가가 실행되는 주기를 제한할 수 있다.
+  ```jsx
+  export function* counterSaga() {
+  	// increaseSaga가 3초에 단 한 번씩 호출됨
+    yield throttle(3000, INCREASE_ASYNC, increaseSaga);
+  	(...)
+  }
+  ```
+- redux-saga는 이 외에도 여러 기능을 제공하기 때문에 비동기 작업을 처리하면서 겪을 수 있는 다양한 상황에 맞춰 개발할 수 있다. 더 알아보고 싶다면 [redux-saga의 매뉴얼](https://redu-saga.js.org/)을 참고하자.
