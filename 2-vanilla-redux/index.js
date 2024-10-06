@@ -1,4 +1,3 @@
-// import { configureStore } from "redux";
 import { configureStore } from "@reduxjs/toolkit";
 
 const divToggle = document.querySelector(".toggle");
