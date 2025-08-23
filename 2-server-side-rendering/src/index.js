@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
@@ -32,16 +32,17 @@ const Root = () => {
   );
 };
 
-const root = document.getElementById("root");
+const container = document.getElementById("root");
 
 // 프로덕션 환경에서는 loadableReady와 hydrate를 사용하고
 // 개발 환경에서 기존 처리
 if (process.env.NODE_ENV === "production") {
   loadableReady(() => {
-    ReactDOM.hydrate(<Root />, root);
+    hydrateRoot(container, <Root />);
   });
 } else {
-  ReactDOM.render(<Root />, root);
+  const root = createRoot(container);
+  root.render(<Root />);
 }
 
 // If you want to start measuring performance in your app, pass a function

@@ -5,8 +5,8 @@
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@loadable/babel-plugin": "^5.16.1",
-    "@loadable/component": "^5.16.4",
-    "@loadable/server": "^5.16.5",
+    "@loadable/component": "^5.16.7",
+    "@loadable/server": "^5.16.7",
     "@loadable/webpack-plugin": "^5.15.2",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@reduxjs/toolkit": "^2.2.7",

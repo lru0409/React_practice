@@ -203,7 +203,7 @@ const UsersContainer = ({ users, getUsers }) => {
 ## 서버 사이드 렌더링과 코드 스플리팅
 
 - Loadable Components를 사용해서 코드 스플리팅을 해본다.
-  - `npm insall @loadable/component @loadable/server @loadable/webpack-plugin @loadable/babel-plugin`
+  - `npm install @loadable/component @loadable/server @loadable/webpack-plugin @loadable/babel-plugin`
   ```jsx
   import loadable from "@loadable/component";
   const RedPage = loadable(() => import("./pages/RedPage"));
