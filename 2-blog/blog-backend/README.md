@@ -18,3 +18,63 @@
 - Express는 미들웨어, 라우팅, 템플릿, 파일 호스팅 등과 같은 다양한 기능 자체적으로 내장하는 반면, Koa는 미들웨어 기능만 갖추고 있으며 나머지를 다른 라이브러리를 적용해 사용 → **Koa는 필요한 기능들만 붙여 서버를 만들 수 있기 때문에 훨씬 가벼움**
 - async/await 문법을 정식으로 지원해 비동기 작업을 편하게 관리 가능
 
+<br/>
+
+## Koa 기본 사용법
+
+### 미들웨어
+
+- Koa 애플리케이션은 미들웨어의 배열로 구성됨
+- `app.use` 함수는 미들웨어 함수를 애플리케이션에 등록함
+- 미들웨어 함수의 구조 : `(ctx, next) => {}`
+    - `ctx` : Context의 줄임말, **웹 요청과 응답에 대한 정보**를 지니고 있음
+    - `next` : 현재 처리 중인 미들웨어의 **다음 미들웨어를 호출하는 함수**
+        - 이 기능을 활용하면 조건부로 다음 미들웨어 처리를 무시하도록 만들 수 있음
+        - `Promise`를 반환 → 이 `Promise`는 다음에 처리해야 할 미들웨어가 끝나야 완료됨
+- 미들웨어는 `app.use`를 사용하여 등록되는 순서대로 처리됨
+
+```jsx
+const Koa = require('koa');
+
+const app = new Koa();
+
+app.use(async (ctx, next) => {
+  if (ctx.query.authorized !== '1') {
+    ctx.status = 401;
+    return;
+  }
+  await next();
+  console.log('END');
+});
+
+app.use((ctx) => {
+  ctx.body = 'hello world';
+});
+
+app.listen(4000, () => {
+  console.log('Listening to port 4000');
+});
+```
+
+<br/>
+
+## nodemon 사용하기
+
+nodemon은 **코드를 변경할 때마다 서버를 자동으로 재시작**해 줌
+
+- nodemon을 개발용 의존 모듈로 설치 : `yarn add --dev nodemon`
+- `package.json`에 `scripts` 추가
+    
+    ```jsx
+    "scripts": {
+    	"start": "node src",
+    	"start:dev": "nodemon --watch src/ src/index.js"
+    }
+    ```
+    
+- 이제부터는 다음 명령어를 사용하여 서버 시작
+    
+    ```bash
+    yarn start # 재시작이 필요 없을 때
+    yarn start:dev # 재시작이 필요할 때
+    ```
