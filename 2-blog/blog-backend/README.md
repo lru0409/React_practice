@@ -78,3 +78,116 @@ nodemon은 **코드를 변경할 때마다 서버를 자동으로 재시작**해
     yarn start # 재시작이 필요 없을 때
     yarn start:dev # 재시작이 필요할 때
     ```
+
+<br>
+
+## koa-router 사용하기
+
+### 기본 사용법
+
+- `yarn add koa-router`
+- `rounter.get`의 첫 번째 파라미터에는 라우트의 경로, 두 번째 파라미터에는 해당 라우트에서 사용할 미들웨어 함수를 넣음
+- `get`은 해당 라우트에 사용할 HTTP 메서드를 의미함
+    - `post`, `put`, `delete` 등을 넣을 수 있음
+
+```jsx
+const Koa = require('koa');
+const Router = require('koa-router');
+
+const app = new Koa();
+const router = new Router();
+
+router.get('/', ctx => {
+  ctx.body = '홈';
+});
+
+router.get('/about', ctx => {
+  ctx.body = '소개';
+});
+
+app.use(router.routes()).use(router.allowedMethods());
+
+app.listen(4000, () => {
+  console.log('Listening to port 4000');
+});
+```
+
+### 라우트 파라미터와 쿼리
+
+- 파라미터는 `/about/:name` 형식으로 콜론(:) 사용
+    - 파라미터가 있을 수도 있고 없을 수도 있다면 `/about/:name?` 처럼 파라미터 이름 뒤에 물음표 사용
+    - 파라미터 값을 `ctx.params`에서 조회 가능
+- 쿼리는 `/posts/?id=10` 같은 형식으로 요청했다면 해당 값을 `ctx.query`에서 조회 가능
+
+```jsx
+router.get('/about', ctx => {
+  ctx.body = '소개';
+});
+
+router.get('/about/:name', ctx => {
+  const { name } = ctx.params;
+  ctx.body = `${name}의 소개`;
+});
+
+router.get('/posts', ctx => {
+  const { id } = ctx.query;
+  ctx.body = id ? `포스트 #${id}` : '포스트 아이디가 없습니다.';
+});
+```
+
+> **파라미터와 쿼리**
+> - 파라미터: 처리할 작업의 카테고리를 받아오거나, 고유 ID 혹은 이름으로 특정 데이터를 조회할 때 사용
+> - 쿼리: 옵션에 관련된 정보를 받아올 때 사용
+>    - 예를 들어 여러 항목을 리스팅하는 API라면, 어떤 조건을 만족하는 항목을 보여 줄지 또는 어떤 기준으로 정렬할지를 정해야 할 때 사용
+
+### **REST API**
+
+- 웹 브라우저에서 데이터베이스에 직접 접속해 데이터를 변경하면 보안상 문제가 되므로, REST API를 만들어 사용함
+- 클라이언트가 서버에 데이터 조회, 생성, 삭제, 업데이트 요청 → 서버가 필요한 로직에 따라 데이터베이스에 접근해 작업 처리
+- **HTTP 메서드 종류**
+    - `GET`: 데이터 조회
+    - `POST`: 데이터 등록 (인증 작업 시에도 활용)
+    - `DELETE`: 데이터 삭제
+    - `PUT`: 데이터를 새 정보로 통째로 교체
+    - `PATCH`: 데이터의 특정 필드를 수정
+- 라우트에서 `route.get(…)`은 GET 요청을 받는 경우, `route.post(…)`는 POST 요청을 받는 경우
+
+### 라우트 모듈화
+
+- 각 라우트를 index.js 파일에 모두 작성하면, 코드가 길어지고 유지보수가 어려워짐 → 라우터를 여러 파일에 분리시켜 작성해야 함
+
+```jsx
+// src/api/index.js
+const Router = require('@koa/router');
+
+const api = new Router();
+
+api.get('/test', (ctx) => {
+  ctx.body = 'test 성공';
+});
+
+module.exports = api;
+```
+
+```jsx
+// src/index.js
+const api = require('./api');
+
+router.use('/api', api.routes());
+
+app.use(router.routes()).use(router.allowedMethods());
+```
+
+### 컨트롤러 파일 작성
+
+- 라우트 처리 함수들을 컨트롤러 파일에 분리해 관리함
+- `koa-bodyparser` 미들웨어를 적용해야 POST/PUT/PATCH 같은 메서드의 Request Body에 JSON 형식으로 들어온 데이터를 서버에서 파싱해서 사용할 수 있음
+    - `yarn add koa-bodyparser`
+    
+    ```jsx
+    const bodyParser = require('koa-bodyparser');
+    
+    app.use(bodyParser());
+    
+    app.use(router.routes()).use(router.allowedMethods());
+    ```
