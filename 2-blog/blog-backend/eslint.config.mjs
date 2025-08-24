@@ -9,9 +9,12 @@ export default defineConfig([
     extends: ['js/recommended'],
     languageOptions: { globals: globals.node },
     rules: {
-      "no-unused-vars": "warn",
-      "no-console": "off",
-    }
+      'no-unused-vars': 'warn',
+      'no-console': 'off',
+    },
+    parserOptions: {
+      sourceType: 'module',
+    },
   },
   { files: ['**/*.js'], languageOptions: { sourceType: 'commonjs' } },
 ]);
