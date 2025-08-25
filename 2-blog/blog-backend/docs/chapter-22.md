@@ -215,3 +215,67 @@ const Book = mongoose.model('Book', BookSchema);
 - MongoDB Compass는 MongoDB를 위한 GUI 프로그램
     - 데이터베이스를 쉽게 조회 및 수정 가능
 - https://www.mongodb.com/download-center/compass에서 다운로드
+
+<br>
+
+## 데이터 생성과 조회
+
+### 데이터 생성
+
+- 포스트의 인스턴스를 만들 때는 `new` 키워드 사용
+- `save()` 함수를 실행시켜 데이터베이스에 저장
+
+```jsx
+export const write = async (ctx) => {
+  const { title, body, tags } = ctx.request.body;
+  const post = new Post({ title, body, tags });
+  try {
+    await post.save();
+    ctx.body = post;
+  } catch (e) {
+    ctx.throw(500, e);
+  }
+};
+```
+
+### 데이터 조회
+
+- 모델 인스턴스의 `find()` 함수 사용
+- `find()` 함수 호출 후 `exec()`을 붙여주어야 서버에 쿼리를 요청함
+
+```jsx
+const posts = await Post.find().exec();
+```
+
+### 특정 포스트 조회
+
+- 특정 id를 가진 데이터를 조회할 때 `findById()` 함수 사용
+
+```jsx
+const post = await Post.findById(id).exec();
+```
+
+<br>
+
+## 데이터 삭제와 수정
+
+### 데이터 삭제
+
+- `remove()`: 특정 조건을 만족하는 데이터를 모두 지움
+- `findByIdAndDelete()`: id를 찾아서 지움
+- `findOneAndRemove()`: 특정 조건을 만족하는 데이터 하나를 찾아서 제거
+
+```jsx
+await Post.findByIdAndDelete(id).exec();
+```
+
+### 데이터 수정
+
+- `findByIdAndUpdate()` 함수 사용
+- 첫 번째 파라미터는 id, 두 번째 파라미터는 업데이트 내용, 세 번째 파라미터는 옵션 전달
+
+```jsx
+const post = await Post.findByIdAndUpdate(id, ctx.request.body, {
+  new: true, // 이 값을 설정하면 업데이트된 데이터를 반환, false면 업데이트되기 전 데이터를 반환
+}).exec();
+```
