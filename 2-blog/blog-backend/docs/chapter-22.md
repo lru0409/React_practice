@@ -279,3 +279,44 @@ const post = await Post.findByIdAndUpdate(id, ctx.request.body, {
   new: true, // 이 값을 설정하면 업데이트된 데이터를 반환, false면 업데이트되기 전 데이터를 반환
 }).exec();
 ```
+
+<br>
+
+## 요청 검증
+
+### ObjectId 검증
+
+- id가 잘못된 겨웅 클라이언트가 요청을 잘못 보낸 것이니 400 Bad Request 오류를 띄워줘야 함
+- id 값이 올바른 ObjectId인지 검증하는 방법은 다음과 같음
+
+```jsx
+import mongoose from 'mongoose';
+
+const { ObjectId } = mongoose.Types;
+ObjectId.isValid(id);
+```
+
+### Request Body 검증
+
+- 객체 검증을 수월하게 해주는 라이브러리 Joi를 사용하자
+    - `yarn add joi`
+
+```jsx
+import Joi from 'joi';
+
+...
+const schema = Joi.object().keys({
+  // 객체가 다음 필드를 가지고 있음을 검증
+  title: Joi.string().required(), // required()가 있으면 필수 항목
+  body: Joi.string().required(),
+  tags: Joi.array().items(Joi.string()).required(),
+});
+
+// 검증하고 나서 검증 실패인 경우 에러 처리
+const result = schema.validate(ctx.request.body);
+if (result.error) {
+  ctx.status = 400; // Bad Request
+  ctx.body = result.error;
+  return;
+}
+```
