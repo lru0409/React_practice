@@ -153,3 +153,65 @@ mongoose
 ```
 
 > **CommonJS 대신 ESM 방법 사용**
+
+<br>
+
+## 데이터베이스의 스키마와 모델
+
+- **스키마** : 컬렉션에 들어가는 문서 내부의 각 필드가 어떤 형식으로 되어 있는지 정의하는 객체
+- **모델** : 스키마를 사용하여 만드는 인스턴스
+    - 데이터베이스에서 실제 작업을 처리할 수 있는 함수들을 지니고 있는 객체
+
+### 스키마 생성
+
+- mongoose 모듈의 `Schema`를 사용해 정의
+
+```jsx
+import mongoose from 'mongoose';
+
+const { Schema } = mongoose;
+
+const AuthorSchema = new Schema({
+  name: String,
+  email: String,
+});
+const BookSchema = new Schema({
+  title: String,
+  description: String,
+  authors: [AuthorSchema],
+  meta: {
+    likes: Number,
+  },
+  extra: Schema.Types.Mixed,
+});
+```
+
+> **Schema에서 지원하는 타입**
+> - String
+> - Number
+> - Date
+> - Buffer : 파일을 담을 수 있는 버퍼
+> - Boolean
+> - Mixed(Schema.Types.Mixed) : 어떤 데이터도 넣을 수 있는 형식
+> - ObjectId(Schema.Types.ObjectId) : 객체 아이디, 주로 다른 객체 참조 시 사용
+> - Array : 배열 형태의 값, []로 감싸서 사용
+
+### 모델 생성
+
+- `mongoose.model` 함수 사용
+- 스키마 이름을 첫 번째 파라미터, 스키마 객체를 두 번째 파라미터로 전달
+- 데이터베이스는 스키마 이름을 정해주면, 그 이름의 복수 형태로 데이터베이스에 컬렉션 이름을 만듦
+    - `Book`(스키마 이름) → `books`(컬렉션 이름)
+    - 이 컨벤션을 따르고 싶지 않다면, 세 번째 파라미터로 원하는 컬렉션 이름 전달
+
+```jsx
+const Book = mongoose.model('Book', BookSchema);
+```
+
+<br>
+
+## MongoDB Compass의 설치 및 사용
+
+- MongoDB Compass는 MongoDB를 위한 GUI 프로그램
+    - 데이터베이스를 쉽게 조회 및 수정 가능
+- https://www.mongodb.com/download-center/compass에서 다운로드
