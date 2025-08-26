@@ -11,7 +11,7 @@ export const checkObjectId = (ctx, next) => {
     return;
   }
   return next();
-}
+};
 
 /*
 POST /api/posts
@@ -49,9 +49,26 @@ export const write = async (ctx) => {
 
 // GET /api/posts
 export const list = async (ctx) => {
+  const page = parseInt(ctx.query.page || '1', 10);
+
+  if (page < 1) {
+    ctx.status = 400;
+    return;
+  }
+
   try {
-    const posts = await Post.find().exec();
-    ctx.body = posts;
+    const posts = await Post.find()
+      .sort({ _id: -1 }) // 포스트를 역순으로 불러오기
+      .skip((page - 1) * 10) // 현재 페이지의 데이터를 주기 위해 넘기기
+      .limit(10) // 한 페이지 당 10개씩만 주기
+      .lean() // Document 객체를 JSON 형태로 변환
+      .exec();
+    const postCount = await Post.countDocuments().exec();
+    ctx.set('Last-Page', Math.ceil(postCount / 10)); // http 헤더 설정
+    ctx.body = posts.map((post) => ({
+      ...post,
+      body: post.body.length < 200 ? post.body : `${post.body.slice(0, 200)}...`,
+    }));
   } catch (e) {
     ctx.throw(500, e);
   }
@@ -93,7 +110,7 @@ export const update = async (ctx) => {
   const schema = Joi.object().keys({
     title: Joi.string(),
     body: Joi.string(),
-    tags: Joi.array().items(Joi.string())
+    tags: Joi.array().items(Joi.string()),
   });
 
   // 검증하고 나서 검증 실패인 경우 에러 처리
@@ -117,4 +134,4 @@ export const update = async (ctx) => {
   } catch (e) {
     ctx.throw(500, e);
   }
-}
+};

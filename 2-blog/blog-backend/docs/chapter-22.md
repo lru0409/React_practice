@@ -320,3 +320,69 @@ if (result.error) {
   return;
 }
 ```
+
+<br>
+
+## 페이지네이션 구현
+
+- 블로그의 포스트 목록에서 한 페이지에 보이는 포스트 개수는 10~20개 정도가 적당함
+- 포스트 목록에서 포스트 전체 내용을 보여 줄 필요 없고, 처음 200자 정도만 보여주면 적당함
+
+### 가짜 데이터 생성하기
+
+- mongoDB와 연결 시 아래 함수를 한 번 호출 후 삭제하기
+- Compass에서 잘 등록되었는지 확인하기
+
+```jsx
+export default async function createFakeData() {
+  const posts = [...Array(40).keys()].map((i) => ({
+    title: `포스트 #${i}`,
+    body: "orem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
+    tags: ['가짜', '데이터'],
+  }));
+
+  try {
+    const docs = await Post.insertMany(posts);
+    console.log(docs);
+  } catch (e) {
+    console.error(e);
+  }
+}
+```
+
+### 페이지네이션 기능 구현하기
+
+- 가장 최근에 작성된 포스트를 먼저 보여주기 위해 `sort()` 함수를 사용해 역순 정렬
+    - 파라미터를 `{ key: 1 }` 형식으로 전달
+    - `key`는 정렬할 필드를 설정하는 부분
+    - 오른쪽 값을 `1`로 설정하면 오름차순, `-1`로 설정하면 내림차순으로 정렬
+- `skip()` 함수는 파라미터로 받은 개수를 제외하고 그다음 데이터를 불러옴
+    - 한 페이지 당 10개인 경우, `(page - 1) * 10`을 파라미터로 전달하면, 현재 페이지의 데이터를 불러올 수 있는 것
+
+```jsx
+export const list = async (ctx) => {
+  const page = parseInt(ctx.query.page || '1', 10); // query로 page 정보를 받지 못한 경우 1로 자동 설정
+
+  if (page < 1) {
+    ctx.status = 400;
+    return;
+  }
+
+  try {
+    const posts = await Post.find()
+      .sort({ _id: -1 }) // 포스트를 역순으로 불러오기
+      .skip((page - 1) * 10) // 현재 페이지의 데이터를 주기 위해 넘기기
+      .limit(10) // 한 페이지 당 10개씩만 주기
+      .lean() // Document 객체를 JSON 형태로 변환
+      .exec();
+    const postCount = await Post.countDocuments().exec();
+    ctx.set('Last-Page', Math.ceil(postCount / 10)); // http 헤더 설정해 Last Page 알려주기
+    ctx.body = posts.map((post) => ({
+      ...post,
+      body: post.body.length < 200 ? post.body : `${post.body.slice(0, 200)}...`, // body가 200가 초과인 경우 자르기
+    }));
+  } catch (e) {
+    ctx.throw(500, e);
+  }
+};
+```
