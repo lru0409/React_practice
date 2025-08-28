@@ -99,9 +99,101 @@ const UserSchema = new Schema({
       return data;
     }
     ```
-    
 
 ### 로그인 구현하기
 
 - 사용자 데이터를 찾기 위해 `findByUsername` 스태틱 메서드 사용
 - 비밀번호 검사를 위해 `checkPassword` 인스턴스 메서드 사용
+
+<br>
+
+## 토큰 발급 및 검증하기
+
+- JWT 토큰을 만들기 위해서 `jsonwebtoken` 모듈 설치
+    - `yarn add jsonwebtoken`
+
+### 비밀키 설정하기
+
+- JWT 토큰을 만들 때 사용할 비밀키를 만들어 `.env` 파일에 `JWT_SECRET` 값으로 설정
+- 이 비밀키는 문자열로 아무거나 입력하면 됨
+- macOS/리눅스를 사용한다면 `openssl rand -hex 64` 명령으로 랜덤 문자열 생성 가능
+- 이 비밀키는 외부에 공개되면 절대 안 됨 → 비밀키가 공개되면 누구든 JWT 토큰 발급이 가능해짐
+
+### 토큰 발급하기
+
+- 토큰을 발급하는 `generateToken` 인스턴스 메서드 구현
+    
+    ```jsx
+    UserSchema.methods.generateToken = function () {
+      const token = jwt.sign(
+        // 첫 번째 파라미터로는 토큰 안에 집어넣고 싶은 데이터 전달
+        {
+          _id: this._id,
+          username: this.username,
+        },
+        process.env.JWT_SECRET, // 두 번째 파라미터로는 JWT 암호 전달
+        {
+          expiresIn: '7d', // 7일 동안 유효함
+        },
+      );
+      return token;
+    };
+    ```
+    
+- 사용자가 브라우저에서 토큰을 두 가지 방법으로 저장할 수 있다.
+    1. localStorage, sessionStorage → XSS 공격 위험
+    2. 쿠키 → httpOnly 속성을 통해 XSS 공격 방어 가능, CSRF 공격 위험
+    
+    → 쿠키를 사용해보자.
+    
+    ```jsx
+    const token = user.generateToken();
+    ctx.cookies.set('access_token', token, {
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7일
+        httpOnly: true,
+    });
+    ```
+    
+
+### 토큰 검증하기
+
+- 사용자의 토큰을 확인한 후 검증하는 작업을 미들웨어를 통해 처리
+- 이 미들웨어를 적용하는 작업은 `app`에 `router` 미들웨어를 적용하기 전에 이루어져야 함
+- 해석된 토큰 정보를 `ctx.state.user`에 저장해두고, `check` api에서 로그인 여부를 알아내기 위해 사용
+
+```jsx
+const jwtMiddleware = (ctx, next) => {
+  const token = ctx.cookies.get('access_token');
+  if (!token) return next();
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    ctx.state.user = { // 해석된 토큰 정보를 ctx.state.user에 저장
+      _id: decoded._id,
+      username: decoded.username,
+    };
+    console.log(decoded);
+    return next();
+  } catch (e) {
+    // 토큰 검증 실패
+    return next();
+  }
+};
+```
+
+### 토큰 재발급하기
+
+- 해석된 토큰에서 `iat`는 이 토큰이 언제 만들어졌는지, `exp`는 언제 만료되는지를 각각 알려줌
+- exp에 표현된 날짜가 3.5일 미만이라면 토큰을 새로운 토큰으로 재발급해주는 기능 구현
+
+```jsx
+// jwtMiddleware에 로직 추가
+const now = Math.floor(Date.now() / 1000);
+if (decoded.exp - now < 60 * 60 * 24 * 3.5) {
+    const user = await User.findById(decoded._id);
+    const token = user.generateToken();
+    ctx.cookies.set('access_token', token, {
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7일
+    httpOnly: true,
+    });
+}
+```
