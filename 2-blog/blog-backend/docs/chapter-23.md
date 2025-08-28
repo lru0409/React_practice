@@ -77,3 +77,31 @@ const UserSchema = new Schema({
     
     - username으로 데이터를 찾을 수 있게 해주는 `findByUsername` 메서드 작성
     - 스태틱 함수에서 `this`는 모델을 가리킴
+
+<br>
+
+## 회원 인증 API 만들기
+
+- auth.ctrl.js에 네 개의 API 작성
+    - register(회원가입), login, check(로그인 여부 확인), logout
+
+### 회원가입 구현하기
+
+- 기존에 동일한 `username`이 존재하는지 확인하기 위해 `findByUsername` 스태틱 메서드 사용
+- 비밀번호를 설정할 때는 (암호화시켜 저장하기 위해) `setPassword` 인스턴스 메서드 사용
+- 스태틱, 인스턴스 함수의 작업을 API 함수 내부에 직접 구현해도 상관없지만, 이렇게 메서드들을 만들어 사용하면 → 가독성, 유지보수성 향상
+- 반환을 위해 데이터를 JSON으로 반환한 뒤 `hashedPassword` 필드를 지우는 작업을 serialize 인스턴스 함수로 따로 만들자
+    
+    ```jsx
+    UserSchema.methods.serialize = function () {
+      const data = this.toJSON();
+      delete data.hashedPassword;
+      return data;
+    }
+    ```
+    
+
+### 로그인 구현하기
+
+- 사용자 데이터를 찾기 위해 `findByUsername` 스태틱 메서드 사용
+- 비밀번호 검사를 위해 `checkPassword` 인스턴스 메서드 사용
