@@ -197,3 +197,90 @@ if (decoded.exp - now < 60 * 60 * 24 * 3.5) {
     });
 }
 ```
+
+<br>
+
+## posts API에 회원 인증 시스템 도입하기
+
+새 포스트는 로그인해야만 작성할 수 있고, 삭제와 수정은 작성자만 할 수 있도록 구현해보자.
+
+### 스키마 수정하기
+
+- post 스키마에 사용자 정보를 넣어주자
+- MariaDB, PostgreSQL 같은 관계형 데이터베이스에서는 데이터의 id만 관계 있는 데이터에 넣어주는 반면, MongoDB에서는 필요한 데이터를 통째로 집어넣음
+
+```jsx
+// Post Schema에 추가
+user: {
+  _id: mongoose.Types.ObjectId,
+  username: String,
+}
+```
+
+### 로그인했을 때만 API를 사용할 수 있게 하기
+
+- `checkLoggedIn` 미들웨어를 만들어 로그인해야만 글쓰기, 수정, 삭제를 할 수 있도록 구현
+- 이 미들웨어를 lib 디렉터리 하위에 작성 → 다른 라우트에서도 사용될 가능성이 있기에, auth 대신 lib에서 구현
+
+```jsx
+const checkLoggedIn = (ctx, next) => {
+  if (!ctx.state.user) {
+    ctx.status = 401; // Unauthorized
+    return;
+  }
+  return next();
+};
+```
+
+### 포스트 작성 시 사용자 정보 넣기
+
+- `write` 함수에서 포스트 생성 시 사용자 정보를 함께 넣어 생성
+
+```jsx
+const post = new Post({ title, body, tags, user: ctx.state.user });
+```
+
+### 포스트 수정 및 삭제 시 권한 확인하기
+
+- 작성자만 포스트를 수정하거나 삭제할 수 있도록 구현
+- 기존에 만들었던 `checkObjectId`를 `getPostById`로 바꾸고, 해당 미들웨어에서 `id`로 포스트를 찾은 후 `ctx.state`에 담기
+    
+    ```jsx
+    export const getPostById = async (ctx, next) => {
+      const { id } = ctx.params;
+      if (!ObjectId.isValid(id)) {
+        ctx.status = 400; // Bad Request
+        return;
+      }
+      try {
+        const post = await Post.findById(id);
+        // 포스트가 존재하지 않을 때
+        if (!post) {
+          ctx.status = 404; // Not Found
+          return;
+        }
+        ctx.state.post = post;
+        return next();
+      } catch (e) {
+        ctx.throw(500, e);
+      }
+    };
+    ```
+    
+    - 이 미들웨어를 단일 포스트 조회, 수정, 삭제 API에 적용
+    - `read` 함수 내부에서 `id`로 포스트 찾는 코드 간소화
+- `id`로 찾은 포스트가 로그인 중인 사용자가 작성한 포스트인지 확인해주는 `checkOwnPost` 미들웨어 구현
+    
+    ```jsx
+    export const checkOwnPost = (ctx, next) => {
+      const { user, post } = ctx.state;
+      if (post.user._id.toString() !== user._id) {
+        ctx.status = 403; // Forbidden
+        return;
+      }
+      return next();
+    }
+    ```
+    
+    - MongoDB에서 조회한 데이터의 id 값을 문자열과 비교할 때는 반드시 `.toString()`을 해 주어야 함
+    - 이 미들웨어를 수정 및 삭제 API에 적용
