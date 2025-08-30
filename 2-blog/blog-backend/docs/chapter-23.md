@@ -284,3 +284,29 @@ const post = new Post({ title, body, tags, user: ctx.state.user });
     
     - MongoDB에서 조회한 데이터의 id 값을 문자열과 비교할 때는 반드시 `.toString()`을 해 주어야 함
     - 이 미들웨어를 수정 및 삭제 API에 적용
+
+<br>
+
+## username/tags로 포스트 필터링하기
+
+특정 사용자가 작성한 포스트만 조회하거나 특정 태그가 있는 포스트만 조회하는 기능 구현
+
+```jsx
+// list 함수에서 추가
+
+const { tag, username } = ctx.query;
+// tag, username 값이 유효하다면 객체 안에 넣고, 그렇지 않으면 넣지 않음
+const query = {
+  ...(username ? { 'user.username': username } : {}),
+  ...(tag ? { tags: tag } : {}),
+}
+
+try {
+  const posts = await Post.find(query)
+    .sort({ _id: -1 }) // 포스트를 역순으로 불러오기
+    .skip((page - 1) * 10) // 현재 페이지의 데이터를 주기 위해 넘기기
+    .limit(10) // 한 페이지 당 10개씩만 주기
+    .lean() // Document 객체를 JSON 형태로 변환
+    .exec();
+  const postCount = await Post.countDocuments(query).exec();
+```

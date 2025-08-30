@@ -67,7 +67,7 @@ export const write = async (ctx) => {
   }
 };
 
-// GET /api/posts
+// GET /api/posts?username=&tag=&page=
 export const list = async (ctx) => {
   const page = parseInt(ctx.query.page || '1', 10);
 
@@ -76,14 +76,21 @@ export const list = async (ctx) => {
     return;
   }
 
+  const { tag, username } = ctx.query;
+  // tag, username 값이 유효하다면 객체 안에 넣고, 그렇지 않으면 넣지 않음
+  const query = {
+    ...(username ? { 'user.username': username } : {}),
+    ...(tag ? { tags: tag } : {}), // 배열 필드에서 단일 값으로 검색하면, "그 배열 안에 그 값이 있는지"를 자동으로 매칭해줌
+  }
+
   try {
-    const posts = await Post.find()
+    const posts = await Post.find(query)
       .sort({ _id: -1 }) // 포스트를 역순으로 불러오기
       .skip((page - 1) * 10) // 현재 페이지의 데이터를 주기 위해 넘기기
       .limit(10) // 한 페이지 당 10개씩만 주기
       .lean() // Document 객체를 JSON 형태로 변환
       .exec();
-    const postCount = await Post.countDocuments().exec();
+    const postCount = await Post.countDocuments(query).exec();
     ctx.set('Last-Page', Math.ceil(postCount / 10)); // http 헤더 설정
     ctx.body = posts.map((post) => ({
       ...post,
