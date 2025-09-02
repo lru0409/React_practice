@@ -74,3 +74,26 @@
 - saga 팩토리 함수인 `createRequestSaga` 함수 작성
 - auth 리덕스 모듈에서 register/login 액션 추가, register/login 사가 생성, 리듀서 구현
 - rootSaga를 만들어 authSaga 등록, 스토어에 saga 미들웨어 적용
+
+### 회원가입 구현
+
+- `RegisterForm`에서 회원가입 성공/실패 처리
+- 사용자의 상태를 담을 `user` 리덕스 모듈 작성 후 루트 리듀서에 등록
+- 회원가입 성공 후 `user` 모듈의 `check`를 호출해 사용자가 로그인 상태가 되었는지 확인
+- 회원가입 성공 시 홈 화면으로 라우트 이동
+
+### 로그인 구현
+
+- LoginForm에서 로그인 성공/실패 처리
+- 회원가입 성공 후 user 모듈의 `check`를 호출해 사용자가 로그인 상태가 되었는지 확인
+- 회원가입 성공 시 홈 화면으로 라우트 이동
+
+### 회원 인증 에러 처리하기
+
+- `AuthForm` 컴포넌트에서 `error` prop을 받아 에러 메시지 표시하도록 구현
+- `LoginForm`에서는 로그인 실패 시 오류 메시지 표시
+- `RegisterForm`에서는 다음과 같은 경우 오류 메시지 표시
+    - `username`, `password`, `passwordConfirm` 중 빈 필드가 있거나
+    - `password`와 `passwordConfirm`이 일치하지 않거나
+    - `username`이 중복되어 회원가입이 실패했거나
+    - 기타 이유로 회원가입 실패 시
