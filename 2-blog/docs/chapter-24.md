@@ -33,3 +33,44 @@
 6. 리덕스 적용하기
     - `yarn add redux react-redux redux-actions immer redux-devtools-extension`
     - `auth` 모듈과 루트 리듀서 만들어 적용하기
+
+<br>
+
+## 회원가입과 로그인 구현
+
+### UI 준비하기
+
+- 회원가입 또는 로그인 폼을 보여주기 위한 `AuthForm` 컴포넌트 작성하기
+- 회원가입/로그인 페이지의 레이아웃을 담당하는 `AuthTemplate` 컴포넌트 작성하기
+- VS Code의 Snippet 기능을 사용하면, 반복되는 컴포넌트 초기 코드 작성 시간을 줄일 수 있음
+
+### 리덕스로 폼 상태 관리하기
+
+- `auth` 모듈에 `changeField`, `initializeForm` 액션 추가
+- `LoginForm`과 `RegisterForm` 컨테이너 컴포넌트 작성하기
+    - `useSelector`로 리덕스 스토어의 form 상태를 꺼내와 `AuthForm`에 전달
+    - `AuthForm`의 인풋 변경 이벤트 핸들러에서 `changeField` 이벤트 dispatch
+    - 컴포넌트가 처음 렌더링될 때 form을 초기화해 이전에 작성했던 내용이 유지되지 않도록 함
+
+### API 연동하기
+
+- 필요한 라이브러리 설치
+    - `yarn add axios redux-saga`
+- `lib/api/client.js`에 axios 클라이언트 생성
+    - 나중에 API 클라이언트에 공통된 설정을 쉽게 넣어 줄 수 있음
+    - 나중에 axios를 사용하지 않는 상황이 왔을 때 클라이언트를 쉽게 교체할 수 있음
+- CORS 오류를 해결하기 위해 웹백 개발 서버에서 지원하는 프록시(proxy) 기능 사용하기
+    - 이 프록시 기능은 개발 서버로 요청하는 API들을 프록시로 정해 둔 서버로 그대로 전달해 주고, 그 응답을 웹 애플리케이션에서 사용할 수 있게 해줌
+    - 사실 CORS 오류를 해결하려면 다른 주소에서도 API를 호출할 수 있도록 서버 쪽 코드를 수정해야 하지만, 최종적으로 결국 리액트 앱과 백엔드 서버를 같은 호스트에서 제공할 것이기 때문에 이러한 설정을 하는 것이 불필요함
+    - CRA로 만든 프로젝트에서 프록시 설정 시, package.json을 수정해주면 됨
+        
+        ```jsx
+        "proxy": "http://localhost:4000/"
+        ```
+        
+        - 이렇게 하면 웹팩 개발 서버가 프록시 역할을 해서 http://localhost:4000에 대신 요청한 뒤 결과물을 응답해줌
+- axios 클라이언트를 통해 `login`, `register`, `check` api 호출하는 함수 작성
+- api 호출 시 로딩 상태를 redux로 관리할 수 있도록 `loading` 리덕스 모듈 작성 후 루트 리듀서에 등록
+- saga 팩토리 함수인 `createRequestSaga` 함수 작성
+- auth 리덕스 모듈에서 register/login 액션 추가, register/login 사가 생성, 리듀서 구현
+- rootSaga를 만들어 authSaga 등록, 스토어에 saga 미들웨어 적용
