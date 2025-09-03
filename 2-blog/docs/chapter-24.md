@@ -97,3 +97,49 @@
     - `password`와 `passwordConfirm`이 일치하지 않거나
     - `username`이 중복되어 회원가입이 실패했거나
     - 기타 이유로 회원가입 실패 시
+
+<br>
+
+## 헤더 컴포넌트 생성 및 로그인 유지
+
+### 헤더 컴포넌트 만들기
+
+- 반응형 디자인을 편하게 하기 위한 `Responsive` 컴포넌트 작성
+- `Responsive`  컴포넌트를 활용해 로고와 로그인한 사용자 이름, 로그인/로그아웃 버튼을 표시하는 `Header` 컴포넌트 구현
+- 로그인 버튼을 눌렀을 때 /login 페이지로 이동을 구현하는 두 가지 방법
+    1. 버튼 컴포넌트에서 `to` prop을 받아, 클릭 시 해당 경로로 `navigate`
+    2. 버튼 컴포넌트에 `to` prop이 전달되면, `button` 대신 `Link` 컴포넌트 사용
+        1. 기존에 사용하던 스타일을 `buttonStyle`에 담아 재사용
+        2. `to` prop 여부에 따라 `StyledLink`를 사용할지, `StyledButton`을 사용할지 결정
+        3. `StyledLink` 사용 시 `props.cyan` 값을 숫자 1과 0으로 변환해주기
+            1. `styled()` 함수로 감싸서 만든 컴포넌트의 경우 임의 props가 필터링되지 않고 실제 엘리먼트까지 전달되기 때문
+            2. `a` 태그는 `boolean` 값이 임의 props로 설정되는 것을 허용하지 않으므로, 숫자로 변환해 전달
+            
+            ```jsx
+            const Button = (props) => {
+              return props.to ? (
+                <StyledLink {...props} cyan={props.cyan ? 1 : 0} />
+              ) : (
+                <StyledButton {...props} />
+              );
+            };
+            ```
+            
+    - 두 방법 중 `Link` 컴포넌트를 사용하는 방법을 권장함 (웹 접근성을 따졌을 때 더 옳은 방식)
+
+### 로그인 상태를 보여주고 유지하기
+
+- `user` 상태를 받아 `Header` 컴포넌트로 전달하는 `HeaderContainer` 컴포넌트 구현
+- `Header` 컴포넌트에선 `user` prop이 전달된 경우, 계정명과 (로그인 대신) 로그아웃 버튼 표시
+- 로그인 상태 유지하기 (localStorage 이용)
+    - `LoginForm`, `RegisterForm`에서 로그인/회원가입 성공 시 사용자 정보를 localStorage에 저장
+    - 리액트 앱에 브라우저에서 맨 처음 렌더링될 때 localStorage에서 user 정보를 불러와 리덕스 스토어 안에 넣도록 구현
+    - 로그인 검증(check) 실패 시 localStorage에서 `user` 정보를 제거
+
+### 로그아웃 기능 구현
+
+- logout api 함수, 액션, saga, 리듀서 추가
+- logoutSaga에서 localStorage의 user 정보 제거하도록 구현
+- 리듀서에서 user 상태를 null로 변경하도록 구현
+- `HeaderContainer`에서 logout 액션을 디스패치하는 `onLogout` 함수를 만들어 `Header` 컴포넌트에 전달
+- `Header` 컴포넌트에서 로그아웃 버튼 클릭 시 `onLogout`이 호출되도록 구현
