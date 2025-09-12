@@ -25,3 +25,10 @@
 - 포스트들을 배열로 받아와 렌더링해주는 `PostList` 컴포넌트 구현
 - 사용자가 로그인 중이라면 페이지 상단 우측에 ‘새 글 작성하기’ 버튼 보여주기
 - `PostViewer`와 `PostList`에서 공통적으로 사용되는 요소를 `SubInfo`, `Tags` 공통 컴포넌트로 분리하기
+
+### API 연동하기
+
+- `qs` 라이브러리를 사용하여 쿼리 값 생성
+    - `yarn add qs`
+- 요청 상태를 관리하는 `posts` 리덕스 모듈 작성
+- 주소에 있는 쿼리 파라미터를 추출해 listPosts API를 호출하는 `PostListContainer` 컴포넌트 구현
