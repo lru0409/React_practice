@@ -32,3 +32,9 @@
     - `yarn add qs`
 - 요청 상태를 관리하는 `posts` 리덕스 모듈 작성
 - 주소에 있는 쿼리 파라미터를 추출해 listPosts API를 호출하는 `PostListContainer` 컴포넌트 구현
+
+### HTML 필터링하기
+
+- sanitize-html 라이브러리를 사용해 HTML 필터링하기
+    - 단순히 HTML을 제거하는 기능뿐만 아니라 특정 HTML만 허용하는 기능도 있기 때문에 글쓰기 API에 사용하면 손쉽게 악성 스크립트 삽입을 막을 수 있음
+    - `yarn add sanitize-html`
