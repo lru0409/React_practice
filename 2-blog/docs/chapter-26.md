@@ -38,3 +38,10 @@
 - sanitize-html 라이브러리를 사용해 HTML 필터링하기
     - 단순히 HTML을 제거하는 기능뿐만 아니라 특정 HTML만 허용하는 기능도 있기 때문에 글쓰기 API에 사용하면 손쉽게 악성 스크립트 삽입을 막을 수 있음
     - `yarn add sanitize-html`
+
+### 페이지네이션 구현하기
+
+- list API에서 마지막 페이지 번호를 HTTP 헤더를 통해 받기 위해서, `createRequestSaga`에서 `meta` 값을 `response`로 넣어주기
+- `posts` 리덕스 모듈에서 list API 성공 시 `lastPage` 상태를 저장
+- 페이지네이션을 위한 `Pagination` 컴포넌트 작성
+- `Pagination` 컴포넌트를 위한 컨테이너인 `PaginationContainer` 컴포넌트 작성
