@@ -1,17 +1,20 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { readPost, unloadPost } from '../../modules/post';
 import PostViewer from '../../components/post/PostViewer';
 import PostActionButtons from '../../components/post/PostActionButtons';
+import { setOriginalPost } from '../../modules/write';
 
 const PostViewerContainer = () => {
+  const navigate = useNavigate();
   const { postId } = useParams();
   const dispatch = useDispatch();
-  const { post, error, loading } = useSelector(({ post, loading }) => ({
+  const { post, error, loading, user } = useSelector(({ post, loading, user }) => ({
     post: post.post,
     error: post.error,
     loading: loading.GET_POST,
+    user: user.user,
   }));
 
   useEffect(() => {
@@ -22,12 +25,19 @@ const PostViewerContainer = () => {
     };
   }, [dispatch, postId]);
 
+  const onEdit = () => {
+    dispatch(setOriginalPost(post));
+    navigate('/write');
+  }
+
+  const ownPost = (user && user._id) === (post && post.user._id);
+
   return (
     <PostViewer
       post={post}
       loading={loading}
       error={error}
-      actionButtons={<PostActionButtons />}
+      actionButtons={ownPost && <PostActionButtons onEdit={onEdit} />}
     />
   );
 };
