@@ -18,3 +18,9 @@
 - 작성 화면으로 이동 시, 제목과 태그 뿐 아니라 내용의 초깃값도 설정되도록 `Editor` 컴포넌트 수정
     - 에디터 컴포넌트 마운트 후 단 한 번만 `useEffect`에 등록한 작업이 실행되어야 하므로, `useRef`를 사용하여 mount 상태에 따라 작업 처리
     - 물론 `useEffect`의 두 번째 파라미터로 빈 배열을 넣을 수도 있지만, ESLint 규칙은 모든 외부 값을 두 번째 파라미터 배열에 포함시키는 것을 권장하므로 이렇게 처리
+
+### 포스트 수정하기
+
+- `WriteActionButtonsContainer`에서 `originalPostId`가 존재하는 경우 새로 작성이 아닌 수정하는 상황으로 판단
+    - publish 시에 포스트 작성 API 대신 수정 API 사용
+    - WriteActionButtons에서 `포스트 등록` 대신 `포스트 수정` 을 버튼에 표시
