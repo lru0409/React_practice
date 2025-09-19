@@ -5,6 +5,7 @@ import { readPost, unloadPost } from '../../modules/post';
 import PostViewer from '../../components/post/PostViewer';
 import PostActionButtons from '../../components/post/PostActionButtons';
 import { setOriginalPost } from '../../modules/write';
+import { removePost } from '../../lib/api/posts';
 
 const PostViewerContainer = () => {
   const navigate = useNavigate();
@@ -30,6 +31,15 @@ const PostViewerContainer = () => {
     navigate('/write');
   }
 
+  const onRemove = async () => {
+    try {
+      await removePost(postId);
+      navigate('/');
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   const ownPost = (user && user._id) === (post && post.user._id);
 
   return (
@@ -37,7 +47,7 @@ const PostViewerContainer = () => {
       post={post}
       loading={loading}
       error={error}
-      actionButtons={ownPost && <PostActionButtons onEdit={onEdit} />}
+      actionButtons={ownPost && <PostActionButtons onEdit={onEdit} onRemove={onRemove} />}
     />
   );
 };
