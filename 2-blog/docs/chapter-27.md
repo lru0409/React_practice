@@ -36,3 +36,20 @@
     - 모달 사용 시 굳이 별도의 파일로 분리할 필요는 없지만, 모달별로 파일을 만들어 주면 나중에 모달의 개수가 많아졌을 때 관리하기 매우 편해짐
 - 모달에서 삭제 버튼 클릭 시 `removePost` api 호출
     - 포스트 삭제 후 따로 보여 주어야 할 결과가 없으므로 리덕스 액션과 사가를 만드는 작업 생략
+
+<br>
+
+## react-helmet-async로 meta 태그 설정하기
+
+- react-helmet-async 라이브러리 설치
+    - `yarn add react-helmet-async`
+- src/index.js 파일에서 `HelmetProvider` 컴포넌트로 `App` 컴포넌트 감싸기
+- meta 태그를 설정하고 싶은 곳에서 `Helmet` 컴포넌트 사용
+    
+    ```jsx
+    <Helmet>
+      <title>REACTERS</title>
+    </Helmet>
+    ```
+    
+    - 더 깊숙한 곳에 위치한 `Helmet`이 우선권을 차지함
