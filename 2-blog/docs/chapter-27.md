@@ -53,3 +53,32 @@
     ```
     
     - 더 깊숙한 곳에 위치한 `Helmet`이 우선권을 차지함
+
+<br>
+
+## 프로젝트 마무리
+
+### 프로젝트 빌드하기
+
+- 백엔드 서버를 통해 리액트 앱을 제공할 수 있도록 빌드해 주어야 함
+- 클라이언트 프로젝트 디렉터리에서 빌드 명령어 실행
+    - `yarn build`
+    - 작업이 끝나면 build 디렉터리가 생성됨
+
+### koa-static으로 정적 파일 제공하기
+
+- 서버를 통해 blog-frontend/build 디렉터리 안의 파일을 사용할 수 있도록 koa-static을 사용해 정적 파일 제공 기능을 구현해보자
+    - `yarn add koa-static`
+- 하단에 HTTP 상태가 404이고, 주소가 /api로 시작하지 않으면 blog-frontend/build 디렉터리의 index.html 내용을 응답하는 미들웨어 적용
+    ```jsx
+    const buildDirectory = path.resolve(__dirname, '../../blog-frontend/build');
+    app.use(serve(buildDirectory));
+    app.use(async (ctx) => {
+      // Not Found이고, 주소가 /api로 시작하지 않는 경우
+      if (ctx.status === 404 && ctx.path.indexOf('/api') !== 0) {
+        // index.html 내용을 반환
+        await send(ctx, 'index.html', { root: buildDirectory });
+      }
+    });
+    ```
+- 백엔드 개발 서버에서 프론트엔드 빌드 결과물을 서빙하고, 브라우저에서 해당 서버 주소로 접속했을 때 정상적으로 프론트엔드 화면이 나타나는지 확인하기
